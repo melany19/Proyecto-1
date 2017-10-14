@@ -10,17 +10,19 @@
 
 using namespace std;
 
-template <class T>
+
 
 class Node
 {
 public:
     Node();
-    Node(T);
+    Node(char * key_,int data_,  int value_size_);
     ~Node();
 
     Node *next;
-    T data;
+    int data;
+    char * key;
+    int value_size;
 
     void delete_all();
     void print();

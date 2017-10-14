@@ -2,13 +2,13 @@
 // Created by melany on 20/09/17.
 //
 
-#include "list.h"
+#include "List.h"
 
 using namespace std;
 
 // Constructor por defecto
-template<typename T>
-List<T>::List()
+
+List::List()
 {
     m_num_nodes = 0;
     m_head = NULL;
@@ -16,11 +16,11 @@ List<T>::List()
 
 
 // Insertar al final
-template<typename T>
-void List<T>::add_end(T data_)
+
+void List::add_end(char * key_,int data_, int value_size_)
 {
-    Node<T> *new_node = new Node<T> (data_);
-    Node<T> *temp = m_head;
+    Node *new_node = new Node(key_, data_,  value_size_);
+    Node *temp = m_head;
 
     if (!m_head) {
         m_head = new_node;
@@ -35,11 +35,11 @@ void List<T>::add_end(T data_)
 
 
 // Eliminar por posición del nodo
-template<typename T>
-void List<T>::del_by_position(int pos)
+
+void List::del_by_position(int pos)
 {
-    Node<T> *temp = m_head;
-    Node<T> *temp1 = temp->next;
+    Node *temp = m_head;
+    Node *temp1 = temp->next;
 
     if (pos < 1 || pos > m_num_nodes) {
         cout << "Fuera de rango " << endl;
@@ -48,7 +48,7 @@ void List<T>::del_by_position(int pos)
     } else {
         for (int i = 2; i <= pos; i++) {
             if (i == pos) {
-                Node<T> *aux_node = temp1;
+                Node *aux_node = temp1;
                 temp->next = temp1->next;
                 delete aux_node;
                 m_num_nodes--;
@@ -60,11 +60,11 @@ void List<T>::del_by_position(int pos)
 }
 
 // Eliminar por data del nodo
-template<typename T>
-void List<T>::del_by_data(T data_)
+
+void List::del_by_data(int data_)
 {
-    Node<T> *temp = m_head;
-    Node<T> *temp1 = m_head->next;
+    Node *temp = m_head;
+    Node *temp1 = m_head->next;
 
     int cont = 0;
 
@@ -73,7 +73,7 @@ void List<T>::del_by_data(T data_)
     } else {
         while (temp1) {
             if (temp1->data == data_) {
-                Node<T> *aux_node = temp1;
+                Node *aux_node = temp1;
                 temp->next = temp1->next;
                 delete aux_node;
                 cont++;
@@ -91,10 +91,10 @@ void List<T>::del_by_data(T data_)
 
 
 // Buscar el dato de un nodo
-template<typename T>
-void List<T>::search(T data_)
+
+void List::search(int data_)
 {
-    Node<T> *temp = m_head;
+    Node *temp = m_head;
     int cont = 1;
     int cont2 = 0;
 
@@ -115,10 +115,10 @@ void List<T>::search(T data_)
 
 
 // Imprimir la Lista
-template<typename T>
-void List<T>::print()
+
+void List::print()
 {
-    Node<T> *temp = m_head;
+    Node *temp = m_head;
     if (!m_head) {
         cout << "La Lista está vacía " << endl;
     } else {
@@ -131,7 +131,7 @@ void List<T>::print()
     cout << endl << endl;
 }
 
-template<typename T>
-List<T>::~List() {}
+
+List::~List() {}
 
 

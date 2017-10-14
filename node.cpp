@@ -6,25 +6,28 @@
 
 
 // Constructor por defecto
-template<typename T>
 
-Node<T>::Node()
+Node ::Node()
 {
     data = NULL;
     next = NULL;
+    key = NULL;
+    value_size = 0;
 }
 
 // Constructor por parámetro
-template<typename T>
-Node<T>::Node(T data_)
+
+Node ::Node(char * key_,int data_,int value_size_)
 {
     data = data_;
+    key= key_;
+    value_size = value_size_;
     next = NULL;
 }
 
 // Eliminar todos los Nodos
-template<typename T>
-void Node<T>::delete_all()
+
+void Node::delete_all()
 {
     if (next)
         next->delete_all();
@@ -32,12 +35,12 @@ void Node<T>::delete_all()
 }
 
 // Imprimir un Nodo
-template<typename T>
-void Node<T>::print()
+
+void Node::print()
 {
     //cout << "Node-> " << "Dato: " << dato << " Direcion: " << this << " Siguiente: " << next << endl;
     cout << data << "-> ";
 }
 
-template<typename T>
-Node<T>::~Node() {}
+
+Node::~Node() {}

@@ -15,67 +15,113 @@
 #include <string>
 #include <pthread.h>
 #include "node.h"
-#include "list.h"
+#include "List.h"
+#include "Memory.cpp"
+#include <pthread.h>
+
 
 using namespace std;
 
 void *task1(void *);
 
-static int connFd;
+static int SocketClient;
+
+char* get_key(char paquete[],ssize_t size);
+int get_value(char paquete[], ssize_t size);
+int get_value_size(char paquete[], ssize_t size);
+
+Memory Memoria = Memory();
+
 
 int main()
 {
-    int port = 8088, verificar;
+    //get_value_size("n&melany&23&8&", 13);
+    int tipo, port, portHA, portActivo;
+    string ipActivo;
+
+    cout << "Indique el tipo de servidor: " << "\n" << "1 : Activo" << "\n" << "2 : Pasivo" << endl;
+    cin >> tipo;
+
+    if (tipo == 1){
+
+        cout << "Indique el puerto del servidor activo: " << endl;
+        cin >> port;
+
+    } else if(tipo == 2) {
+        cout << "Indique el puerto del servidor pasivo: " << endl;
+        cin >> portHA;
+
+        cout << "Indique la ip del servidor activo: " << endl;
+        cin >> ipActivo;
+
+        cout << "Indique el puerto del servidor activo: " << endl;
+        cin >> portActivo;
+
+        //sincronizarServers(portHA, ipActivo, portActivo);
+        port = portHA;
+    }else {
+        cout << "Servidor incorrecto " << endl;
+        return 0;
+    }
+
+    int  Socket;
     socklen_t len; //store size of the address
     //bool loop = false;
-    struct sockaddr_in svrAdd, clntAdd;
+    struct sockaddr_in ServerAdd, ClientAdd;
 
-    pthread_t threadA[3];
+    //Hilos
+    pthread_t threadA[3];  //Máximo de hilos
 
     //crea el socket
-    verificar = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    Socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP); //Dominio, flujo, protocolo
 
-    if(verificar < 0)
+    if(Socket < 0)
     {
-        cerr << "Cannot open socket" << endl;
+        cerr << "Error al abrir el socket" << endl;
         return 0;
     }
 
 
-    svrAdd.sin_family = AF_INET;
-    svrAdd.sin_addr.s_addr = INADDR_ANY;
-    svrAdd.sin_port = htons(port);
+    ServerAdd.sin_family = AF_INET;  //Dominio
+    ServerAdd.sin_addr.s_addr = INADDR_ANY;
+    ServerAdd.sin_port = htons(port);  //Puerto a conectar
 
-    //bind socket
-    if(bind(verificar, (sockaddr*)&svrAdd, sizeof(svrAdd)) < 0)
+    //enlazar socket
+    if(bind(Socket, (sockaddr*)&ServerAdd, sizeof(ServerAdd)) < 0)
     {
-        cerr << "Cannot bind" << endl;
+        cerr << "No se pudo conectar" << endl;
         return 0;
     }
 
-    listen(verificar, 5);
+    listen(Socket, 5);
 
-    len = sizeof(clntAdd);
+    len = sizeof(ClientAdd);
 
     int noThread = 0;
 
     while (noThread < 3)
     {
-        socklen_t len = sizeof(clntAdd);
+        socklen_t len = sizeof(ClientAdd);
 
-        cout << "Listening" << endl;
+        if (port==portHA){
+            cout << "Servidor pasivo escuchando " << endl;
+        }else{
+            cout << "Servidor activo escuchando " << endl;
+        }
+
+
 
         //this is where client connects. svr will hang in this mode until client conn
-        connFd = accept(verificar, (struct sockaddr *)&clntAdd, &len);
+        SocketClient = accept(Socket, (struct sockaddr *)&ClientAdd, &len);
 
-        if (connFd < 0)
+        if (SocketClient < 0)
         {
-            cerr << "Cannot accept connection" << endl;
+            cerr << "No se aceptó la conexión" << endl;
             return 0;
         }
         else
         {
-            cout << "Connection successful" << endl;
+            cout << "Conexión exitosa" << endl;
         }
 
         pthread_create(&threadA[noThread], NULL, task1, NULL);
@@ -91,26 +137,121 @@ int main()
 
 }
 
-void *task1 (void *dummyPt)
-{
+void *task1 (void *dummyPt) {
     cout << "Thread No: " << pthread_self() << endl;
-    char test[300];
-    bzero(test, 301);
+    char test[100];
+    //bzero(test, 301);
     bool loop = false;
-    while(!loop)
-    {
-        bzero(test, 301);
+    while (!loop) {
+        //bzero(test, 301);
 
 
-        read(connFd, test, 300);
+        ssize_t size = read(SocketClient, test, 100);
 
-        string tester (test);
+        string tester(test);
+        if (test[0] == 'n'){
+            Memoria.RAM.add_end(get_key(test,size),get_value(test,size), get_value_size(test,size));
+            Memoria.RAM.print();
+            cout << get_key(test,size)<< endl;
+            cout << get_value(test,size) << endl;
+            cout<< get_value_size(test,size) << endl;
+
+        } else if (test[0]== 'o'){
+
+        }
         cout << tester << endl;
 
 
-        if(tester == "exit")
+        if (tester == "exit")
             break;
     }
     cout << "\nClosing thread and conn" << endl;
-    close(connFd);
+    close(SocketClient);
 }
+
+
+char* get_key(char paquete[], ssize_t size){
+    string a(paquete);
+    int menor, mayor, auxiliar=0;
+    //cout<< size << endl;
+    for (int i=0; i< size-1;i++){
+        if (paquete[i]=='&'){
+            auxiliar+=1;
+            if (auxiliar==1){
+                menor=i+1;
+
+            }else if(auxiliar==2){
+                mayor=i;
+                break;
+            }
+
+        }
+
+    }
+
+    char* key = (char*)a.substr(menor, mayor-menor).c_str();
+    return key;
+    cout << key << endl;
+}
+
+
+
+int get_value(char paquete[], ssize_t size){
+    string a(paquete);
+    int menor, mayor, auxiliar=0;
+    //cout<< size << endl;
+    for (int i=0; i< size-1;i++){
+        if (paquete[i]=='&'){
+            auxiliar+=1;
+            if (auxiliar==2){
+                menor=i+1;
+
+            }else if(auxiliar==3){
+                mayor=i;
+                break;
+            }
+
+        }
+
+    }
+
+    char* value_aux = (char*)a.substr(menor, mayor-menor).c_str();
+    int value = atoi(value_aux);
+    return value;
+    //cout << value << endl;
+}
+
+int get_value_size(char paquete[], ssize_t size){
+    string a(paquete);
+    int menor, mayor, auxiliar=0;
+    //cout<< size << endl;
+    for (int i=0; i< size-1;i++){
+        if (paquete[i]=='&'){
+            auxiliar+=1;
+            if (auxiliar==3){
+                menor=i+1;
+
+            }else if(auxiliar==4){
+                mayor=i;
+                break;
+            }
+
+        }
+
+    }
+
+    char* value_size_aux = (char*)a.substr(menor, mayor-menor).c_str();
+    int value_size = atoi(value_size_aux);
+    return value_size;
+
+    //cout << value_size << endl;
+}
+
+
+
+
+
+
+//void insertarMemoria(String);
+
+

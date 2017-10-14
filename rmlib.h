@@ -1,4 +1,5 @@
 //
+
 // Created by melany on 20/09/17.
 //
 
@@ -25,12 +26,17 @@
 #include <time.h>
 #include <vector>
 #include <arpa/inet.h>
+#include "Memory.cpp"
+#include "List.cpp"
+#include <sstream>
 using namespace std;
 
-void init (char* argv[])
+
+int Client=0, port, portHA;
+void rm_init (char* argv[])
 {
-    int Client, port, portHA;
-    bool loop = false;
+
+    //bool loop = false;
     struct sockaddr_in svrAdd;
     struct hostent *server;
     struct hostent *serverHA;
@@ -39,18 +45,19 @@ void init (char* argv[])
     port = atoi(argv[1]);  // Convierte un puntero de caracteres en puntero
     portHA = atoi(argv[3]);
 
-    if((port > 65535) || (port < 2000))
+    /*if((port > 65535) || (port < 2000))
     {
         cerr<<"Please enter port number between 2000 - 65535"<<endl;
         exit;
     }
-
+*/
     //crea cliente
+
     Client = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     if(Client < 0)
     {
-        cerr << "Cannot open socket" << endl;
+        cerr << "No se pudo hacer la conexión" << endl;
         exit;
     }
 
@@ -76,6 +83,7 @@ void init (char* argv[])
     svrAdd.sin_port = htons(port);
 
 
+
     int verificar = connect(Client,(struct sockaddr *) &svrAdd, sizeof(svrAdd));
     for (int i=0; i<2; i++){
         if (verificar < 0)
@@ -89,6 +97,7 @@ void init (char* argv[])
             }
             svrAdd.sin_addr.s_addr = inet_addr(argv[2]);
             svrAdd.sin_port = htons(portHA);
+
             int checker = connect(Client,(struct sockaddr *) &svrAdd, sizeof(svrAdd));
 
         }
@@ -100,9 +109,11 @@ void init (char* argv[])
 
 
 
+   // write(Client, s, strlen(s));
+
     //send stuff to server
-    for(;;)
-    {
+    /*for(;;)
+    //{
         char s[300];
         //cin.clear();
         //cin.ignore(256, '\n');
@@ -111,5 +122,43 @@ void init (char* argv[])
         cin.getline(s, 300);
 
         write(Client, s, strlen(s));
+    }*/
+}
+
+void closeSoclet(){
+    if (Client!=0){
+        Client = 0;
     }
 }
+
+void rm_new (char* key, void* value, int value_size){
+    ostringstream paquete;
+
+    paquete << "n&" << key << "&" << *(int*)value << "&" << value_size;
+    cout << paquete.str() << endl;
+    write(Client, paquete.str().c_str(),paquete.str().size());
+
+
+
+}
+
+
+/*rmRef_h rm_get(char* key){
+    iostringtram paquete;
+    paquete << "o&" << key << "&" << *(int*)value << "&" << value_size;
+    write(Client, paquete.str().c_str(),paquete.str().size());
+
+
+
+}*/
+
+
+/*void rm_delete(rmRef_H* handler){
+    iostringtram paquete;
+    paquete << "e&" << key << "&" << *(int*)value << "&" << value_size;
+    write(Client, paquete.str().c_str(),paquete.str().size());
+
+}
+  */
+
+//}
